@@ -90,7 +90,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/KaravaliBazar">
         <AuthProvider>
           <AppRoutes />
         </AuthProvider>
