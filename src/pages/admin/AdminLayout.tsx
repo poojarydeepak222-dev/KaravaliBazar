@@ -1,5 +1,5 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Trophy, ArrowDown, ArrowUp, Gamepad2, Settings, LogOut, RefreshCw, BarChart2, Bell } from 'lucide-react';
+import { LayoutDashboard, Users, Trophy, ArrowDown, ArrowUp, Gamepad2, Settings, LogOut, RefreshCw, BarChart2, Bell, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -44,12 +44,12 @@ const AdminLayout = () => {
     { path: '/admin/games', icon: Gamepad2, label: 'Games', badge: 0 },
     { path: '/admin/chart', icon: BarChart2, label: 'Chart', badge: 0 },
     { path: '/admin/notifications', icon: Bell, label: 'Notify', badge: 0 },
+    { path: '/admin/forum-settings', icon: MessageSquare, label: 'Forum', badge: 0 },
     { path: '/admin/settings', icon: Settings, label: 'Settings', badge: 0 },
   ];
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Top Bar */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-gray-900 text-white">
         <div className="flex items-center px-4 py-2.5 gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm" style={{ background: 'linear-gradient(135deg, #FF6B1A, #FF1D78)' }}>KB</div>
@@ -70,7 +70,6 @@ const AdminLayout = () => {
         </div>
       </div>
 
-      {/* Bottom Nav */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-700">
         <div className="flex overflow-x-auto scrollbar-hide">
           {navItems.map(({ path, icon: Icon, label, badge }) => {
@@ -94,7 +93,6 @@ const AdminLayout = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="pt-14 pb-16 min-h-screen">
         <Outlet />
       </div>
