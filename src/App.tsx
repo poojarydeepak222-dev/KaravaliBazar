@@ -23,6 +23,7 @@ import AdminBids from "./pages/admin/AdminBids";
 import AdminDeposits from "./pages/admin/AdminDeposits";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminForumSettings from "./pages/admin/AdminForumSettings";
 import AdminChart from "./pages/admin/AdminChart";
 import NotificationsPage from "./pages/NotificationsPage";
 import AdminNotifications from "./pages/admin/AdminNotifications";
@@ -52,14 +53,11 @@ const AppRoutes = () => {
   const { user } = useAuth();
   return (
     <Routes>
-      {/* Public routes - no login required */}
       <Route path="/" element={user ? <HomePage /> : <LandingPage />} />
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
       <Route path="/register" element={user ? <Navigate to="/" replace /> : <RegisterPage />} />
       <Route path="/mpin" element={<MpinPage />} />
-      {/* Chart is publicly viewable */}
       <Route path="/game/:id/chart" element={<ChartPage />} />
-      {/* Protected game play */}
       <Route path="/game/:id/play" element={<ProtectedRoute><GamePlayPage /></ProtectedRoute>} />
       <Route path="/forum" element={<ProtectedRoute><ForumPage /></ProtectedRoute>} />
       <Route path="/funds" element={<ProtectedRoute><FundsPage /></ProtectedRoute>} />
@@ -77,6 +75,7 @@ const AppRoutes = () => {
         <Route path="deposits" element={<AdminDeposits />} />
         <Route path="withdrawals" element={<AdminWithdrawals />} />
         <Route path="settings" element={<AdminSettings />} />
+        <Route path="forum-settings" element={<AdminForumSettings />} />
         <Route path="chart" element={<AdminChart />} />
         <Route path="notifications" element={<AdminNotifications />} />
       </Route>
