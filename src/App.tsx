@@ -33,6 +33,7 @@ import PassbookPage from "./pages/PassbookPage";
 import LandingPage from "./pages/LandingPage";
 import ChartsListPage from "./pages/ChartsListPage";
 import GameRatesPage from "./pages/GameRatesPage";
+import ForumVisibilityController from "./components/ForumVisibilityController";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
@@ -92,6 +93,7 @@ const App = () => (
       <BrowserRouter basename="/KaravaliBazar">
         <AuthProvider>
           <AppRoutes />
+          <ForumVisibilityController />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
