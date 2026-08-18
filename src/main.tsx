@@ -1,14 +1,8 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
-import ForumVisibilityController from './components/ForumVisibilityController'
 import './index.css'
 
-createRoot(document.getElementById("root")!).render(
-  <>
-    <App />
-    <ForumVisibilityController />
-  </>
-);
+createRoot(document.getElementById("root")!).render(<App />);
 
 // Register Service Worker for PWA support
 if ('serviceWorker' in navigator) {
