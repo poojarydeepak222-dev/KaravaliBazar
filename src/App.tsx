@@ -1,108 +1,151 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { BarChart2, Bell, Calendar, ChevronRight, Clock, RefreshCw, Share2, X } from "lucide-react";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
+import ChartPage from "./pages/ChartPage";
+import ChartsListPage from "./pages/ChartsListPage";
+import NotFound from "./pages/NotFound";
 
-const updates = [
-  { title: "Latest Updates", text: "Check this section for newly published public information and announcements.", tag: "Updates" },
-  { title: "Charts & Data", text: "Browse published charts and reference information in a simple mobile-friendly format.", tag: "Data" },
-  { title: "Announcements", text: "Important notices and platform announcements will appear here.", tag: "Notice" },
-];
+type Game = {
+  id: string;
+  name: string;
+  open_time?: string;
+  close_time?: string;
+  status?: string;
+  open_pana?: string;
+  jodi?: string;
+  close_pana?: string;
+  current_result?: string;
+};
 
-const App = () => {
-  const [active, setActive] = useState("home");
+function SafeHome() {
+  const navigate = useNavigate();
+  const [games, setGames] = useState<Game[]>([]);
+  const [announcement, setAnnouncement] = useState("");
+  const [now, setNow] = useState(new Date());
+  const [shareOpen, setShareOpen] = useState(false);
 
-  const scrollTo = (id: string) => {
-    setActive(id);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  const load = async () => {
+    const { data: gamesData } = await supabase.from("games").select("*").eq("is_active", true).order("sort_order");
+    if (gamesData) setGames(gamesData as Game[]);
+    const { data: settingsData } = await supabase.from("settings").select("*");
+    const item = (settingsData || []).find((x: any) => x.key === "announcement");
+    setAnnouncement(item?.value || "");
+  };
+
+  useEffect(() => {
+    load();
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    const refresh = setInterval(load, 30000);
+    return () => { clearInterval(timer); clearInterval(refresh); };
+  }, []);
+
+  const share = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      await navigator.share({ title: "Karavali Bazar", text: "Karavali Bazar information and result charts", url });
+    } else {
+      await navigator.clipboard?.writeText(url);
+      alert("Link copied");
+    }
+    setShareOpen(false);
+  };
+
+  const statusClass: Record<string,string> = {
+    upcoming: "text-yellow-600 bg-yellow-50 border-yellow-200",
+    open: "text-green-600 bg-green-50 border-green-200",
+    closed: "text-red-500 bg-red-50 border-red-200"
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <button onClick={() => scrollTo("home")} className="text-xl font-black tracking-tight">
-            <span className="text-orange-500">Matka</span><span className="text-slate-900">222</span>
-          </button>
-          <nav className="hidden gap-6 text-sm font-semibold sm:flex">
-            {["home", "updates", "about", "contact"].map((item) => (
-              <button key={item} onClick={() => scrollTo(item)} className={active === item ? "text-orange-500" : "text-slate-600 hover:text-orange-500"}>
-                {item[0].toUpperCase() + item.slice(1)}
-              </button>
-            ))}
-          </nav>
-          <button onClick={() => scrollTo("updates")} className="rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow-sm">
-            Explore
+    <div className="min-h-screen bg-gray-50 pb-10">
+      <header className="sticky top-0 z-30" style={{background:"linear-gradient(135deg,#FF6B1A 0%,#FF1D78 100%)"}}>
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <span className="text-white font-black text-sm">KB</span>
+            </div>
+            <div>
+              <p className="text-white font-black text-lg tracking-wider leading-none">KARAVALI BAZAR</p>
+              <p className="text-white/75 text-[10px] font-medium">Information & Results</p>
+            </div>
+          </div>
+          <button onClick={() => setShareOpen(true)} className="flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1.5">
+            <Share2 size={14} className="text-white"/><span className="text-white text-xs font-bold">Share</span>
           </button>
         </div>
       </header>
 
-      <main>
-        <section id="home" className="bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950">
-          <div className="mx-auto max-w-6xl px-4 py-20 sm:py-28">
-            <div className="max-w-3xl">
-              <p className="mb-4 inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-orange-300">
-                Information Hub
-              </p>
-              <h1 className="text-4xl font-black leading-tight text-white sm:text-6xl">
-                Matka222
-                <span className="block text-orange-400">Simple. Clear. Informative.</span>
-              </h1>
-              <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-                A mobile-first platform for public updates, announcements, charts and useful reference information.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <button onClick={() => scrollTo("updates")} className="rounded-xl bg-orange-500 px-6 py-3 font-bold text-white hover:bg-orange-600">
-                  View Updates
-                </button>
-                <button onClick={() => scrollTo("about")} className="rounded-xl border border-white/20 bg-white/10 px-6 py-3 font-bold text-white hover:bg-white/15">
-                  About Matka222
-                </button>
+      {announcement && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center gap-2">
+          <Bell size={15} className="text-amber-600"/><p className="text-amber-700 text-sm font-medium">{announcement}</p>
+        </div>
+      )}
+
+      <div className="bg-orange-50 border-b border-orange-100 py-1.5 overflow-hidden">
+        <div className="whitespace-nowrap text-orange-600 text-sm font-semibold text-center px-4">
+          🎉 WELCOME TO KARAVALI BAZAR • PUBLIC UPDATES & RESULTS
+        </div>
+      </div>
+
+      <main className="px-4 pt-3 space-y-3">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2"><Calendar size={15} className="text-orange-500"/><span className="text-sm font-semibold text-gray-700">{now.toLocaleDateString("en-IN",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}</span></div>
+          <div className="flex items-center gap-1.5 bg-orange-50 rounded-xl px-2.5 py-1"><Clock size={13} className="text-orange-500"/><span className="text-sm font-bold text-orange-600 font-mono">{now.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:true})}</span></div>
+        </div>
+
+        <div className="rounded-2xl p-4 shadow-sm" style={{background:"linear-gradient(135deg,#FF6B1A 0%,#FF1D78 100%)"}}>
+          <div className="flex items-center gap-2 mb-2"><Bell size={15} className="text-white"/><span className="text-white font-black text-sm tracking-widest">NOTICE BOARD</span></div>
+          <div className="bg-white/20 rounded-xl px-3 py-2.5"><p className="text-white text-sm font-medium">{announcement || "Welcome to Karavali Bazar."}</p></div>
+        </div>
+
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-2"><BarChart2 size={18} className="text-orange-500"/><span className="font-black text-gray-800 text-base">RESULTS & CHARTS</span></div>
+          <div className="flex items-center gap-1.5 text-gray-400 text-xs"><RefreshCw size={11}/><span>Auto-updates</span></div>
+        </div>
+
+        <div className="space-y-3">
+          {games.map(game => (
+            <div key={game.id} className="bg-white rounded-2xl shadow-sm border border-orange-100 overflow-hidden">
+              <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+                <div><h3 className="font-black text-gray-800 text-base tracking-wide">{game.name}</h3><div className="flex gap-2 mt-0.5 text-xs text-gray-400"><span>OPEN: {game.open_time || "-"}</span><span>|</span><span>CLOSE: {game.close_time || "-"}</span></div></div>
+                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${statusClass[game.status || "upcoming"] || statusClass.upcoming}`}>{(game.status || "upcoming").toUpperCase()}</span>
               </div>
+              <div className="mx-4 mb-3 rounded-xl py-4 px-3 flex items-center justify-center" style={{background:"linear-gradient(135deg,#fff5f0 0%,#fff0f8 100%)",border:"1px solid #ffe0d0"}}>
+                <div className="text-center">
+                  <p className="text-[10px] text-gray-400 font-bold mb-1 tracking-widest">RESULT</p>
+                  <span className="font-black text-3xl text-gray-700 tracking-[0.2em] font-mono">{game.current_result || "---"}</span>
+                </div>
+              </div>
+              <button onClick={() => navigate(`/game/${game.id}/chart`)} className="w-full flex items-center justify-center gap-2 py-3 border-t border-gray-100 text-blue-600 text-sm font-bold">
+                <BarChart2 size={16}/> View Chart <ChevronRight size={14}/>
+              </button>
             </div>
-          </div>
-        </section>
-
-        <section id="updates" className="mx-auto max-w-6xl px-4 py-16">
-          <div className="mb-8">
-            <p className="text-sm font-bold uppercase tracking-widest text-orange-500">What’s new</p>
-            <h2 className="mt-2 text-3xl font-black">Latest information</h2>
-          </div>
-          <div className="grid gap-5 md:grid-cols-3">
-            {updates.map((item) => (
-              <article key={item.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">{item.tag}</span>
-                <h3 className="mt-5 text-xl font-black">{item.title}</h3>
-                <p className="mt-3 leading-6 text-slate-600">{item.text}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section id="about" className="border-y border-slate-200 bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-16">
-            <h2 className="text-3xl font-black">About Matka222</h2>
-            <p className="mt-4 max-w-3xl leading-7 text-slate-600">
-              Matka222 is being presented as a non-gambling information website. The public site does not provide betting, wagering, deposits, withdrawals, paid gameplay or gambling transactions.
-            </p>
-          </div>
-        </section>
-
-        <section id="contact" className="mx-auto max-w-6xl px-4 py-16">
-          <div className="rounded-3xl bg-slate-900 p-8 text-white sm:p-12">
-            <h2 className="text-3xl font-black">Contact & notices</h2>
-            <p className="mt-3 max-w-2xl leading-7 text-slate-300">
-              Use this area for future public contact details, announcements and support information.
-            </p>
-          </div>
-        </section>
+          ))}
+          {!games.length && <div className="bg-white rounded-2xl p-10 text-center text-gray-500">No public results available right now.</div>}
+        </div>
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <span>© {new Date().getFullYear()} Matka222</span>
-          <span>Information & public resources</span>
+      {shareOpen && <div className="fixed inset-0 z-50 flex items-end bg-black/50" onClick={() => setShareOpen(false)}>
+        <div className="bg-white w-full rounded-t-3xl p-5" onClick={e => e.stopPropagation()}>
+          <div className="flex justify-between mb-4"><p className="font-black text-lg">Share Karavali Bazar</p><button onClick={() => setShareOpen(false)}><X size={18}/></button></div>
+          <button onClick={share} className="w-full py-3 rounded-xl bg-orange-500 text-white font-bold">Share / Copy Link</button>
         </div>
-      </footer>
+      </div>}
     </div>
   );
-};
+}
 
+function App() {
+  return (
+    <BrowserRouter basename="/KaravaliBazar">
+      <Routes>
+        <Route path="/" element={<SafeHome/>}/>
+        <Route path="/charts" element={<ChartsListPage/>}/>
+        <Route path="/game/:id/chart" element={<ChartPage/>}/>
+        <Route path="*" element={<NotFound/>}/>
+      </Routes>
+    </BrowserRouter>
+  );
+}
 export default App;
