@@ -4,11 +4,15 @@ import './index.css'
 
 createRoot(document.getElementById("root")!).render(<App />);
 
-// Register Service Worker for PWA support
+// Register the service worker using Vite's configured base path.
+// This keeps PWA support working on GitHub Pages subpaths.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    const basePath = import.meta.env.BASE_URL || '/';
+    const serviceWorkerUrl = `${basePath.replace(/\/$/, '')}/sw.js`;
+
     navigator.serviceWorker
-      .register('/sw.js')
+      .register(serviceWorkerUrl, { scope: basePath })
       .then((reg) => {
         console.log('SW registered:', reg.scope);
       })
