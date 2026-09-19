@@ -1,0 +1,1 @@
+export default function LegacyHome(){return <div>Karavali Bazar</div>;} 
